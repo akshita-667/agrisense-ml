@@ -36,9 +36,9 @@
   "test_accuracy": 0.9955,
   "model_comparison": {
     "LogisticRegression": {
-      "test_accuracy": 0.95,
-      "cv_mean": 0.9686,
-      "cv_std": 0.006
+      "test_accuracy": 0.9477,
+      "cv_mean": 0.9705,
+      "cv_std": 0.0063
     },
     "DecisionTree": {
       "test_accuracy": 0.9795,
@@ -74,5 +74,35 @@
     "N": 0.1034,
     "temperature": 0.0755,
     "ph": 0.0523
+  },
+  "feature_ranges": {
+    "N": {
+      "min": 0.0,
+      "max": 140.0
+    },
+    "P": {
+      "min": 5.0,
+      "max": 145.0
+    },
+    "K": {
+      "min": 5.0,
+      "max": 205.0
+    },
+    "temperature": {
+      "min": 8.83,
+      "max": 43.68
+    },
+    "humidity": {
+      "min": 14.26,
+      "max": 99.98
+    },
+    "ph": {
+      "min": 3.5,
+      "max": 9.94
+    },
+    "rainfall": {
+      "min": 20.21,
+      "max": 298.56
+    }
   }
 }

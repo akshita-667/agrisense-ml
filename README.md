@@ -15,6 +15,8 @@ models/        Trained model artifacts (the .pkl files are generated, not commit
 notebooks/     Exploration notebooks
 train_model.py              Trains and compares models, saves artifacts
 predict_with_explanation.py CropRecommender class used by the backend
+app.py                      Flask REST API
+tests/                      API tests (pytest)
 ```
 
 # ML Model Training
@@ -41,16 +43,45 @@ python predict_with_explanation.py
 This loads the saved model and shows SHAP-based, farmer-readable explanations
 for a sample input.
 
-## Using this in your Flask backend
-```python
-from predict_with_explanation import CropRecommender
-
-recommender = CropRecommender(model_dir="models")
-results = recommender.predict(N=90, P=42, K=43, temperature=20.9,
-                                humidity=82.0, ph=6.5, rainfall=202.9, top_k=3)
+## Run the backend (Flask API)
+```bash
+python train_model.py        # once, to create models/*.pkl
+python app.py                # serves http://127.0.0.1:5000
+python -m pytest tests       # run the API tests
 ```
-Returns a list of dicts: `crop`, `confidence_pct`, `explanation`, `warnings` —
-this is exactly the shape your `/api/recommend` endpoint should return as JSON.
+
+| Method | Endpoint | What it does |
+|---|---|---|
+| GET | `/api/health` | Server status |
+| GET | `/api/crops` | The 22 crops the model knows |
+| GET | `/api/model-info` | Accuracy, model comparison, feature importance, input limits |
+| POST | `/api/recommend` | Top crop recommendations for soil + weather values |
+
+### `POST /api/recommend`
+Request body (JSON). All 7 fields are required, and `top_k` (1-10) is optional with a default of 3:
+```json
+{"N": 90, "P": 42, "K": 43, "temperature": 20.9, "humidity": 82.0,
+ "ph": 6.5, "rainfall": 202.9, "top_k": 3}
+```
+Response:
+```json
+{
+  "input": {"N": 90.0, "...": "..."},
+  "recommendations": [
+    {"crop": "rice", "confidence_pct": 93.5,
+     "explanation": ["Rainfall (202.9) supports this recommendation.", "..."],
+     "warnings": []}
+  ],
+  "notes": []
+}
+```
+- Invalid input returns **400** with a message for each field, for example
+  `{"error": "Invalid input", "details": {"ph": "Must be between 0 and 14."}}`.
+- `notes` lists inputs that are valid but outside the training data
+  (for example N above 140), where the prediction is less reliable.
+
+Environment variables: `PORT` (default 5000), `CORS_ORIGINS` (default `*`, set it
+to your frontend URL in production), `FLASK_DEBUG=1`, `AGRISENSE_MODEL_DIR`.
 
 ## Dataset
 `data/Crop_recommendation.csv` - 2200 rows, 22 crops, 7 features

@@ -6,12 +6,14 @@ for each recommendation using SHAP. This is the module your Flask
 /api/recommend endpoint will import and call.
 """
 
+import os
+
 import joblib
 import numpy as np
 import pandas as pd
 import shap
 
-MODEL_DIR = "models"
+MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
 FEATURES = ["N", "P", "K", "temperature", "humidity", "ph", "rainfall"]
 
 # Ideal-range knowledge base used for the plain-language explanation layer.

@@ -7,6 +7,7 @@ scaler, feature importance) for use in the Flask backend.
 """
 
 import json
+import os
 import joblib
 import numpy as np
 import pandas as pd
@@ -20,8 +21,10 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from xgboost import XGBClassifier
 
-DATA_PATH = "data/Crop_recommendation.csv"
-MODEL_DIR = "models"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(BASE_DIR, "data", "Crop_recommendation.csv")
+MODEL_DIR = os.path.join(BASE_DIR, "models")
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 FEATURES = ["N", "P", "K", "temperature", "humidity", "ph", "rainfall"]
 TARGET = "label"
@@ -132,6 +135,12 @@ with open(f"{MODEL_DIR}/metadata.json", "w") as f:
         "test_accuracy": round(final_acc, 4),
         "model_comparison": {k: {kk: round(vv, 4) for kk, vv in v.items()} for k, v in results.items()},
         "feature_importance": importances,
+        # Min/max of each feature in the training data, so the API can warn
+        # when a farmer's input is outside what the model has seen.
+        "feature_ranges": {
+            feat: {"min": round(float(df[feat].min()), 2), "max": round(float(df[feat].max()), 2)}
+            for feat in FEATURES
+        },
     }, f, indent=2)
 
 print("Saved: models/crop_model.pkl")
