@@ -115,3 +115,11 @@ def test_cors_header(client):
     res = client.get("/api/health", headers={"Origin": "http://localhost:3000"})
     # flask-cors echoes the caller's origin back when all origins are allowed
     assert res.headers.get("Access-Control-Allow-Origin") in ("*", "http://localhost:3000")
+
+
+def test_frontend_is_served(client):
+    res = client.get("/")
+    assert res.status_code == 200
+    assert b"AgriSense" in res.data
+    assert client.get("/app.js").status_code == 200
+    assert client.get("/styles.css").status_code == 200

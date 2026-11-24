@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgriSense – Crop Recommendation</title>
+  <meta name="description" content="AI-based crop recommendation for farmers using soil nutrients and weather.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top" aria-label="AgriSense home">
+        <span class="brand-mark" aria-hidden="true">🌱</span>
+        <span class="brand-name">AgriSense</span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="#recommend">Get recommendation</a>
+        <a href="#how">How it works</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <h1>Find the right crop for your field</h1>
+        <p class="lead">
+          Enter your soil test values and local weather. AgriSense suggests the
+          crops most likely to grow well and explains why.
+        </p>
+      </div>
+    </section>
+
+    <section id="recommend" class="wrap layout">
+      <form id="crop-form" class="card form-card" novalidate>
+        <div class="card-head">
+          <h2>Your field details</h2>
+          <div class="presets" role="group" aria-label="Fill with example values">
+            <span class="presets-label">Try an example:</span>
+            <button type="button" class="chip" data-preset="rice">Wet, humid field</button>
+            <button type="button" class="chip" data-preset="chickpea">Dry, cool field</button>
+            <button type="button" class="chip" data-preset="cotton">Warm, nitrogen-rich</button>
+          </div>
+        </div>
+
+        <fieldset>
+          <legend>Soil nutrients <span class="legend-hint">from your Soil Health Card</span></legend>
+          <div class="grid">
+            <div class="field" data-field="N">
+              <label for="N">Nitrogen (N)</label>
+              <div class="input-unit"><input id="N" name="N" type="number" inputmode="decimal" step="any" min="0" max="300" required><span>kg/ha</span></div>
+              <p class="hint">Typical: 0 – 140</p>
+              <p class="error" id="N-error" aria-live="polite"></p>
+            </div>
+            <div class="field" data-field="P">
+              <label for="P">Phosphorus (P)</label>
+              <div class="input-unit"><input id="P" name="P" type="number" inputmode="decimal" step="any" min="0" max="300" required><span>kg/ha</span></div>
+              <p class="hint">Typical: 5 – 145</p>
+              <p class="error" id="P-error" aria-live="polite"></p>
+            </div>
+            <div class="field" data-field="K">
+              <label for="K">Potassium (K)</label>
+              <div class="input-unit"><input id="K" name="K" type="number" inputmode="decimal" step="any" min="0" max="400" required><span>kg/ha</span></div>
+              <p class="hint">Typical: 5 – 205</p>
+              <p class="error" id="K-error" aria-live="polite"></p>
+            </div>
+            <div class="field" data-field="ph">
+              <label for="ph">Soil pH</label>
+              <div class="input-unit"><input id="ph" name="ph" type="number" inputmode="decimal" step="any" min="0" max="14" required><span>pH</span></div>
+              <p class="hint">Typical: 3.5 – 10 (7 is neutral)</p>
+              <p class="error" id="ph-error" aria-live="polite"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Weather <span class="legend-hint">average for the growing season</span></legend>
+          <div class="grid">
+            <div class="field" data-field="temperature">
+              <label for="temperature">Temperature</label>
+              <div class="input-unit"><input id="temperature" name="temperature" type="number" inputmode="decimal" step="any" min="-10" max="60" required><span>°C</span></div>
+              <p class="hint">Typical: 9 – 44</p>
+              <p class="error" id="temperature-error" aria-live="polite"></p>
+            </div>
+            <div class="field" data-field="humidity">
+              <label for="humidity">Humidity</label>
+              <div class="input-unit"><input id="humidity" name="humidity" type="number" inputmode="decimal" step="any" min="0" max="100" required><span>%</span></div>
+              <p class="hint">Typical: 14 – 100</p>
+              <p class="error" id="humidity-error" aria-live="polite"></p>
+            </div>
+            <div class="field" data-field="rainfall">
+              <label for="rainfall">Rainfall</label>
+              <div class="input-unit"><input id="rainfall" name="rainfall" type="number" inputmode="decimal" step="any" min="0" max="5000" required><span>mm</span></div>
+              <p class="hint">Typical: 20 – 300</p>
+              <p class="error" id="rainfall-error" aria-live="polite"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary" id="submit-btn">
+            <span class="btn-label">Recommend crops</span>
+          </button>
+          <button type="reset" class="btn-ghost">Clear</button>
+        </div>
+      </form>
+
+      <section class="card results-card" id="results" aria-live="polite" aria-labelledby="results-title">
+        <h2 id="results-title">Recommendations</h2>
+        <div class="empty" id="results-empty">
+          <div class="empty-icon" aria-hidden="true">🌾</div>
+          <p>Fill in your field details and press <strong>Recommend crops</strong>. Your top 3 crops will show up here.</p>
+        </div>
+        <div id="results-notes"></div>
+        <ol class="rec-list" id="rec-list"></ol>
+      </section>
+    </section>
+
+    <section id="how" class="wrap how">
+      <h2>How it works</h2>
+      <div class="how-grid">
+        <div class="card how-step">
+          <span class="step-num">1</span>
+          <h3>You enter field details</h3>
+          <p>Soil nutrients and pH from a soil test, plus the season's temperature, humidity and rainfall.</p>
+        </div>
+        <div class="card how-step">
+          <span class="step-num">2</span>
+          <h3>The model compares</h3>
+          <p>A Random Forest model trained on <span id="stat-rows">2,200</span> field records across <span id="stat-crops">22</span> crops finds the best matches.</p>
+        </div>
+        <div class="card how-step">
+          <span class="step-num">3</span>
+          <h3>You get reasons, not just answers</h3>
+          <p>For each crop, AgriSense shows which of your values helped or hurt the match.</p>
+        </div>
+      </div>
+
+      <div class="card model-card" id="model-card">
+        <div class="model-stats">
+          <div class="stat">
+            <span class="stat-value" id="stat-accuracy">–</span>
+            <span class="stat-label">accuracy on test data</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="stat-models">–</span>
+            <span class="stat-label">models compared</span>
+          </div>
+        </div>
+        <div class="importance">
+          <h3>What matters most to the model</h3>
+          <ul class="bars" id="importance-bars"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>AgriSense · AI-based crop recommendation for farmers. Recommendations are a guide: check with your local Krishi Vigyan Kendra (KVK) before planting.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

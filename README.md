@@ -3,10 +3,21 @@
 5th semester Entrepreneurship project.
 **Problem statement:** AI-based crop recommendation for farmers.
 
-This repository currently holds the ML component: a model that recommends
-the best crops for a farmer's soil and weather conditions, with
-plain-language (SHAP-based) explanations. A full-stack web app
-(Flask backend + frontend) will be built on top of it.
+A full-stack web app: farmers enter their soil test values and local
+weather, and an ML model recommends the best crops with plain-language
+(SHAP-based) explanations.
+
+- **ML model**: RandomForest trained on 22 crops (99.55% test accuracy)
+- **Backend**: Flask REST API (`app.py`)
+- **Frontend**: responsive web page (`frontend/`) served by Flask, built
+  with plain HTML/CSS/JavaScript so there is no build step
+
+## Quick start
+```bash
+pip install -r requirements.txt
+python train_model.py        # once, to create models/*.pkl
+python app.py                # open http://127.0.0.1:5000
+```
 
 ## Project structure
 ```
@@ -15,7 +26,8 @@ models/        Trained model artifacts (the .pkl files are generated, not commit
 notebooks/     Exploration notebooks
 train_model.py              Trains and compares models, saves artifacts
 predict_with_explanation.py CropRecommender class used by the backend
-app.py                      Flask REST API
+app.py                      Flask REST API + serves the frontend
+frontend/                   Web page (index.html, styles.css, app.js)
 tests/                      API tests (pytest)
 ```
 
@@ -46,12 +58,13 @@ for a sample input.
 ## Run the backend (Flask API)
 ```bash
 python train_model.py        # once, to create models/*.pkl
-python app.py                # serves http://127.0.0.1:5000
+python app.py                # web page + API at http://127.0.0.1:5000
 python -m pytest tests       # run the API tests
 ```
 
 | Method | Endpoint | What it does |
 |---|---|---|
+| GET | `/` | The farmer-facing web page |
 | GET | `/api/health` | Server status |
 | GET | `/api/crops` | The 22 crops the model knows |
 | GET | `/api/model-info` | Accuracy, model comparison, feature importance, input limits |
@@ -79,6 +92,15 @@ Response:
   `{"error": "Invalid input", "details": {"ph": "Must be between 0 and 14."}}`.
 - `notes` lists inputs that are valid but outside the training data
   (for example N above 140), where the prediction is less reliable.
+
+## Frontend
+`frontend/` is a single page with no framework and no build step. It works on phones, follows the device's light/dark setting and has:
+- the input form, with units, typical ranges, example presets and an error message on each field
+- recommendation cards with a match %, "why" reasons and general soil tips
+- a "How it works" section with model accuracy and what matters most to the model (from `/api/model-info`)
+
+To host the frontend separately from the API, set
+`window.AGRISENSE_API_BASE = "https://your-api"` before `app.js` loads, and set `CORS_ORIGINS` on the backend.
 
 Environment variables: `PORT` (default 5000), `CORS_ORIGINS` (default `*`, set it
 to your frontend URL in production), `FLASK_DEBUG=1`, `AGRISENSE_MODEL_DIR`.

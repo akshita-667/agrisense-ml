@@ -5,6 +5,7 @@ REST API that serves crop recommendations from the trained model.
 
 Endpoints
 ---------
+GET  /                -> the farmer-facing web page (frontend/)
 GET  /api/health      -> is the server up and the model loaded?
 GET  /api/crops       -> list of crops the model can recommend
 GET  /api/model-info  -> accuracy, model comparison, feature importance
@@ -25,6 +26,7 @@ from predict_with_explanation import FEATURES, CropRecommender
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_MODEL_DIR = os.path.join(BASE_DIR, "models")
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
 # Physically sensible limits for each input. Values outside these are
 # rejected as invalid (typos, wrong units). This is different from the
@@ -100,7 +102,8 @@ def _out_of_training_range(values, feature_ranges):
 def create_app(model_dir=None):
     model_dir = model_dir or os.environ.get("AGRISENSE_MODEL_DIR", DEFAULT_MODEL_DIR)
 
-    app = Flask(__name__)
+    # The frontend is plain HTML/CSS/JS, served as static files from frontend/.
+    app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
     app.json.sort_keys = False
 
     # Allow the frontend (served from a different port/domain) to call the API.
@@ -112,6 +115,10 @@ def create_app(model_dir=None):
     with open(os.path.join(model_dir, "metadata.json"), encoding="utf-8") as f:
         metadata = json.load(f)
     feature_ranges = metadata.get("feature_ranges", {})
+
+    @app.get("/")
+    def index():
+        return app.send_static_file("index.html")
 
     @app.get("/api/health")
     def health():
